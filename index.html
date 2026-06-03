@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sensei.AI">
+<meta name="theme-color" content="#0c0c14">
+<link rel="manifest" href="manifest.json">
+<title>SENSEI.AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Noto+Sans+JP:wght@300;400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ─── TOKENS ─────────────────────────────────────────── */
+:root {
+  --bg:        #0c0c14;
+  --bg2:       #13131f;
+  --surface:   #1a1a2a;
+  --surface2:  #222235;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.12);
+  --text:      #e4e4f0;
+  --text2:     #9898b0;
+  --text3:     #5a5a70;
+
+  --en:        #38bdf8;
+  --en-dim:    rgba(56,189,248,0.12);
+  --en-glow:   rgba(56,189,248,0.25);
+  --jp:        #f472b6;
+  --jp-dim:    rgba(244,114,182,0.12);
+  --jp-glow:   rgba(244,114,182,0.25);
+  --cd:        #86efac;
+  --cd-dim:    rgba(134,239,172,0.12);
+  --cd-glow:   rgba(134,239,172,0.25);
+  --gold:      #fbbf24;
+
+  --r-sm:  10px;
+  --r-md:  14px;
+  --r-lg:  20px;
+  --r-xl:  28px;
+
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ─── RESET ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+textarea, input { font-family: inherit; }
+a { color: inherit; }
+
+/* ─── LAYOUT ─────────────────────────────────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  padding-top: var(--safe-top);
+}
+
+/* ─── TOPBAR ─────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg);
+  z-index: 20;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  flex: 1;
+}
+.logo em {
+  font-style: normal;
+  font-family: 'Noto Sans JP';
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--text2);
+  margin-left: 2px;
+}
+
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+.icon-btn {
+  width: 36px; height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  transition: all 0.15s;
+  color: var(--text2);
+}
+.icon-btn:hover, .icon-btn:active { background: var(--surface2); color: var(--text); }
+.icon-btn.active { background: var(--en-dim); border-color: rgba(56,189,248,0.3); color: var(--en); }
+
+.streak-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: 12px; font-weight: 600; color: var(--gold);
+}
+
+/* ─── SUBJECT TABS ───────────────────────────────────── */
+.subject-tabs {
+  display: flex;
+  padding: 10px 16px;
+  gap: 8px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.subject-tabs::-webkit-scrollbar { display: none; }
+
+.stab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--r-xl);
+  border: 1px solid var(--border);
+  font-size: 13px; font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.2s;
+  color: var(--text2);
+  background: var(--surface);
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.stab .tab-flag { font-size: 15px; }
+
+.stab.active[data-m="english"]  { background: var(--en-dim); border-color: var(--en); color: var(--en); }
+.stab.active[data-m="japanese"] { background: var(--jp-dim); border-color: var(--jp); color: var(--jp); }
+.stab.active[data-m="webdev"]   { background: var(--cd-dim); border-color: var(--cd); color: var(--cd); }
+
+/* ─── BODY AREA ──────────────────────────────────────── */
+.body-area {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── CHAT AREA ──────────────────────────────────────── */
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.chat-teacher-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.teacher-avatar {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  position: relative;
+  border: 1.5px solid var(--border);
+}
+.teacher-avatar.en { border-color: var(--en); background: var(--en-dim); box-shadow: 0 0 12px var(--en-glow); }
+.teacher-avatar.jp { border-color: var(--jp); background: var(--jp-dim); box-shadow: 0 0 12px var(--jp-glow); }
+.teacher-avatar.cd { border-color: var(--cd); background: var(--cd-dim); box-shadow: 0 0 12px var(--cd-glow); }
+
+.online-dot {
+  position: absolute; bottom: -1px; right: -1px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #22c55e; border: 2px solid var(--bg);
+}
+
+.teacher-meta { flex: 1; min-width: 0; }
+.teacher-meta strong { display: block; font-size: 14px; font-weight: 600; }
+.teacher-meta span   { font-size: 11px; color: var(--text2); }
+
+.offline-badge {
+  display: none; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 20px;
+  background: rgba(251,191,36,0.12);
+  border: 1px solid rgba(251,191,36,0.3);
+  font-size: 10px; font-weight: 600; color: var(--gold);
+}
+.offline-badge.show { display: flex; }
+
+/* ─── MESSAGES ───────────────────────────────────────── */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface2) transparent;
+}
+
+.msg-wrap { display: flex; gap: 8px; animation: msgIn 0.25s ease; }
+.msg-wrap.user { flex-direction: row-reverse; }
+
+@keyframes msgIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+.msg-av {
+  width: 30px; height: 30px; border-radius: 9px;
+  background: var(--surface); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0; align-self: flex-end;
+}
+
+.msg-body { display: flex; flex-direction: column; gap: 4px; max-width: min(78%, 480px); }
+.msg-wrap.user .msg-body { align-items: flex-end; }
+
+.bubble {
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  font-size: 14px; line-height: 1.65;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.bubble.en { border-left: 2px solid var(--en); }
+.bubble.jp { border-left: 2px solid var(--jp); font-family: 'Noto Sans JP', 'DM Sans'; }
+.bubble.cd { border-left: 2px solid var(--cd); }
+.bubble.user-msg {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-right: 2px solid rgba(255,255,255,0.15);
+}
+
+.bubble code {
+  font-family: 'DM Mono', monospace;
+  background: rgba(134,239,172,0.1);
+  color: var(--cd);
+  padding: 1px 5px; border-radius: 4px; font-size: 12px;
+}
+
+.bubble pre {
+  font-family: 'DM Mono', monospace;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-sm); padding: 12px;
+  margin-top: 8px; overflow-x: auto;
+  font-size: 12px; line-height: 1.7; color: var(--cd);
+}
+
+.msg-actions {
+  display: flex; gap: 5px; padding: 0 2px;
+}
+
+.act-btn {
+  padding: 3px 9px; border-radius: 6px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text3); font-size: 11px; font-weight: 500;
+  transition: all 0.15s;
+}
+.act-btn:hover, .act-btn:active { color: var(--text2); border-color: var(--border2); }
+
+.typing-bubble {
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  display: flex; gap: 5px; align-items: center;
+  width: 56px;
+}
+.typing-bubble span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text3); animation: blink 1.2s infinite;
+}
+.typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+.typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+/* ─── INPUT BAR ──────────────────────────────────────── */
+.input-bar {
+  padding: 10px 12px;
+  padding-bottom: calc(10px + var(--safe-bottom));
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg);
+}
+
+.suggestions-row {
+  display: flex; gap: 6px; overflow-x: auto; margin-bottom: 8px;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.suggestions-row::-webkit-scrollbar { display: none; }
+.suggestions-row:empty { display: none; }
+
+.chip {
+  display: flex; align-items: center; gap: 4px;
+  padding: 5px 12px; border-radius: 20px; white-space: nowrap;
+  border: 1px solid var(--border); background: var(--surface);
+  font-size: 12px; color: var(--text2);
+  transition: all 0.15s; flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.chip:hover, .chip:active { border-color: var(--border2); color: var(--text); }
+
+.input-row {
+  display: flex; gap: 8px; align-items: flex-end;
+}
+
+.msg-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-size: 14px; line-height: 1.5;
+  padding: 10px 14px;
+  resize: none; outline: none;
+  transition: border-color 0.15s;
+  max-height: 120px;
+  -webkit-appearance: none;
+}
+.msg-input:focus { border-color: var(--border2); }
+.msg-input::placeholder { color: var(--text3); }
+
+.send-btn, .mic-btn {
+  width: 42px; height: 42px; border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; flex-shrink: 0;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mic-btn {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2);
+}
+.mic-btn.rec {
+  background: rgba(251,191,36,0.15);
+  border-color: rgba(251,191,36,0.4);
+  color: var(--gold);
+  animation: pulse 1s infinite;
+}
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+
+.send-btn {
+  background: var(--en); color: #000; font-weight: 700;
+  border: none;
+}
+.send-btn.jp { background: var(--jp); }
+.send-btn.cd { background: var(--cd); }
+.send-btn:active { opacity: 0.85; transform: scale(0.97); }
+
+/* ─── RIGHT PANEL (desktop) ──────────────────────────── */
+.right-panel {
+  width: 300px;
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow-y: auto; overflow-x: hidden;
+  background: var(--bg2);
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface2) transparent;
+  flex-shrink: 0;
+}
+
+.rp-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.rp-title {
+  font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  font-weight: 700; color: var(--text3); margin-bottom: 12px;
+}
+
+/* Progress */
+.prog-list { display: flex; flex-direction: column; gap: 10px; }
+.prog-item { display: flex; align-items: center; gap: 10px; }
+.prog-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.prog-info { flex: 1; min-width: 0; }
+.prog-label { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+.prog-bar { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+.prog-pct { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+
+/* Flash card */
+.flash-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 20px; text-align: center;
+  cursor: pointer;
+  perspective: 600px;
+  position: relative; min-height: 100px;
+}
+.flash-inner {
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+  position: relative;
+}
+.flash-card.flipped .flash-inner { transform: rotateY(180deg); }
+.flash-front, .flash-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flash-back {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transform: rotateY(180deg);
+}
+.flash-kanji { font-size: 42px; font-family: 'Noto Sans JP'; line-height: 1; margin-bottom: 4px; }
+.flash-romaji { font-size: 13px; color: var(--text2); font-family: 'DM Mono'; }
+.flash-meaning { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.flash-hint { font-size: 12px; color: var(--text2); margin-top: 10px; }
+.flash-nav { display: flex; gap: 8px; margin-top: 10px; }
+.flash-nav button {
+  flex: 1; padding: 7px; border-radius: var(--r-sm);
+  background: var(--surface2); border: 1px solid var(--border);
+  font-size: 12px; font-weight: 600; color: var(--text2);
+  transition: all 0.15s;
+}
+.flash-nav button:hover { color: var(--text); }
+
+/* Offline courses */
+.course-list { display: flex; flex-direction: column; gap: 8px; }
+.course-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 10px 12px;
+  display: flex; align-items: center; gap: 10px;
+  transition: all 0.15s; cursor: pointer;
+}
+.course-card:hover { border-color: var(--border2); }
+.course-icon { font-size: 18px; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.course-icon.en { background: var(--en-dim); }
+.course-icon.jp { background: var(--jp-dim); }
+.course-icon.cd { background: var(--cd-dim); }
+.course-meta { flex: 1; min-width: 0; }
+.course-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.course-sub  { font-size: 11px; color: var(--text2); margin-top: 1px; }
+.dl-btn {
+  width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface2); border: 1px solid var(--border);
+  font-size: 14px; transition: all 0.2s; color: var(--text2);
+}
+.dl-btn:hover { color: var(--en); border-color: rgba(56,189,248,0.3); }
+.dl-btn.downloading { animation: spin 1s linear infinite; }
+.dl-btn.done { color: var(--cd); border-color: rgba(134,239,172,0.3); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Streak mini */
+.streak-days { display: flex; gap: 4px; flex-wrap: wrap; }
+.s-day {
+  width: 30px; height: 30px; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--surface);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--text3); gap: 1px;
+}
+.s-day.done { background: rgba(134,239,172,0.1); border-color: rgba(134,239,172,0.3); color: var(--cd); }
+.s-day.today { border-color: var(--gold); color: var(--gold); }
+
+/* ─── BOTTOM NAV (mobile only) ───────────────────────── */
+.bottom-nav {
+  display: none;
+  padding: 8px 16px;
+  padding-bottom: calc(8px + var(--safe-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+  z-index: 20;
+}
+.bn-tabs { display: flex; gap: 4px; }
+.bn-tab {
+  flex: 1; padding: 8px 4px; border-radius: var(--r-sm);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-size: 10px; font-weight: 600; color: var(--text3);
+  transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+}
+.bn-tab .bn-icon { font-size: 20px; line-height: 1; }
+.bn-tab.active { color: var(--text); background: var(--surface); }
+
+/* ─── SHEET (mobile side panel) ─────────────────────── */
+.sheet-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 40; backdrop-filter: blur(4px);
+}
+.sheet-overlay.open { display: block; }
+
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  background: var(--bg2);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  z-index: 50;
+  max-height: 85dvh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+  padding-bottom: calc(20px + var(--safe-bottom));
+}
+.sheet.open { transform: translateY(0); }
+
+.sheet-handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--surface2); margin: 12px auto 4px;
+}
+.sheet-title {
+  font-size: 13px; font-weight: 700; color: var(--text2);
+  text-align: center; padding: 8px; border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .right-panel { display: none; }
+  .bottom-nav  { display: block; }
+  .chat-area   { height: 100%; }
+
+  .messages { padding: 12px; }
+  .bubble   { font-size: 14px; }
+
+  .topbar { padding: 10px 14px; }
+  .subject-tabs { padding: 8px 14px; }
+  .input-bar { padding: 8px 10px; padding-bottom: calc(8px + var(--safe-bottom)); }
+}
+
+@media (min-width: 769px) {
+  .right-panel { display: flex; }
+  .bottom-nav  { display: none; }
+}
+
+/* ─── OFFLINE TOAST ──────────────────────────────────── */
+.toast {
+  position: fixed; bottom: calc(80px + var(--safe-bottom));
+  left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--r-xl); padding: 10px 18px;
+  font-size: 13px; font-weight: 600; white-space: nowrap;
+  opacity: 0; transition: all 0.3s; z-index: 99; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+
+<body>
+<div class="app" id="app">
+
+  <!-- ─── TOPBAR ──────────────────────────────────────── -->
+  <div class="topbar">
+    <div class="logo">SENSEI<em>先生</em></div>
+    <div class="topbar-actions">
+      <div class="streak-pill">🔥 <span id="streakCount">3</span></div>
+      <button class="icon-btn" id="offlineBtn" onclick="openSheet('offline')" title="Cours hors-ligne">⬇️</button>
+      <button class="icon-btn" id="statsBtn" onclick="openSheet('stats')" title="Progression">📊</button>
+    </div>
+  </div>
+
+  <!-- ─── SUBJECT TABS ────────────────────────────────── -->
+  <div class="subject-tabs">
+    <button class="stab active" data-m="english" onclick="switchMode('english')">
+      <span class="tab-flag">🇬🇧</span> Anglais
+    </button>
+    <button class="stab" data-m="japanese" onclick="switchMode('japanese')">
+      <span class="tab-flag">🇯🇵</span> Japonais
+    </button>
+    <button class="stab" data-m="webdev" onclick="switchMode('webdev')">
+      <span class="tab-flag">💻</span> Web Dev
+    </button>
+  </div>
+
+  <!-- ─── BODY ─────────────────────────────────────────── -->
+  <div class="body-area">
+
+    <!-- CHAT -->
+    <div class="chat-area">
+      <div class="chat-teacher-bar" id="teacherBar">
+        <div class="teacher-avatar en" id="teacherAv">🎓<div class="online-dot"></div></div>
+        <div class="teacher-meta">
+          <strong id="teacherName">Alex — English Sensei</strong>
+          <span id="teacherSub">Anglais conversationnel & professionnel</span>
+        </div>
+        <div class="offline-badge" id="offlineBadge">📵 Hors-ligne</div>
+      </div>
+
+      <div class="messages" id="messages"></div>
+
+      <div class="input-bar">
+        <div class="suggestions-row" id="suggestionsRow"></div>
+        <div class="input-row">
+          <textarea class="msg-input" id="msgInput"
+            placeholder="Écris un message..."
+            rows="1"
+            onkeydown="onKey(event)"
+            oninput="autoSize(this)"></textarea>
+          <button class="mic-btn" id="micBtn" onclick="toggleVoice()" title="Parler">🎤</button>
+          <button class="send-btn" id="sendBtn" onclick="send()" title="Envoyer">↑</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL (desktop) -->
+    <div class="right-panel" id="rightPanel">
+
+      <!-- Progress -->
+      <div class="rp-section">
+        <div class="rp-title">📊 Progression</div>
+        <div class="prog-list">
+          <div class="prog-item">
+            <div class="prog-icon">🇬🇧</div>
+            <div class="prog-info">
+              <div class="prog-label">Anglais</div>
+              <div class="prog-bar"><div class="prog-fill" style="width:20%;background:var(--en)"></div></div>
+            </div>
+            <div class="prog-pct">20%</div>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon">🇯🇵</div>
+            <div class="prog-info">
+              <div class="prog-label">Japonais</div>
+              <div class="prog-bar"><div class="prog-fill" style="width:5%;background:var(--jp)"></div></div>
+            </div>
+            <div class="prog-pct">5%</div>
+          </div>
+          <div class="prog-item">
+            <div class="prog-icon">💻</div>
+            <div class="prog-info">
+              <div class="prog-label">Web Dev</div>
+              <div class="prog-bar"><div class="prog-fill" style="width:10%;background:var(--cd)"></div></div>
+            </div>
+            <div class="prog-pct">10%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flash card -->
+      <div class="rp-section">
+        <div class="rp-title">🃏 Flash Card</div>
+        <div class="flash-card" id="flashCard" onclick="flipCard()">
+          <div class="flash-inner">
+            <div class="flash-front">
+              <div class="flash-kanji" id="fcKanji">水</div>
+              <div class="flash-romaji" id="fcRomaji">mizu</div>
+              <div class="flash-hint">Tap pour révéler</div>
+            </div>
+            <div class="flash-back">
+              <div class="flash-meaning" id="fcMeaning">💧 Eau</div>
+            </div>
+          </div>
+        </div>
+        <div class="flash-nav">
+          <button onclick="prevCard()">← Préc.</button>
+          <button onclick="nextCard()">Suiv. →</button>
+        </div>
+      </div>
+
+      <!-- Offline courses -->
+      <div class="rp-section">
+        <div class="rp-title">📥 Cours Hors-Ligne</div>
+        <div class="course-list" id="courseListDesktop"></div>
+      </div>
+
+      <!-- Streak -->
+      <div class="rp-section">
+        <div class="rp-title">🔥 Streak — 3 jours</div>
+        <div class="streak-days" id="streakDays"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── BOTTOM NAV (mobile) ──────────────────────────── -->
+  <div class="bottom-nav">
+    <div class="bn-tabs">
+      <button class="bn-tab active" id="bntChat" onclick="mobilePanelSwitch('chat')">
+        <div class="bn-icon">💬</div>Chat
+      </button>
+      <button class="bn-tab" id="bntProgress" onclick="openSheet('stats')">
+        <div class="bn-icon">📊</div>Stats
+      </button>
+      <button class="bn-tab" id="bntCards" onclick="openSheet('cards')">
+        <div class="bn-icon">🃏</div>Cartes
+      </button>
+      <button class="bn-tab" id="bntOffline" onclick="openSheet('offline')">
+        <div class="bn-icon">⬇️</div>Offline
+      </button>
+    </div>
+  </div>
+
+</div><!-- .app -->
+
+<!-- ─── SHEET (mobile bottom drawer) ──────────────────── -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title" id="sheetTitle">Infos</div>
+  <div id="sheetBody" style="padding:0 16px 12px"></div>
+</div>
+
+<!-- ─── TOAST ─────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<!-- ─── SCRIPTS ──────────────────────────────────────── -->
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+const TEACHERS = {
+  english: {
+    avatar: '🎓', cls: 'en', send: 'send-btn',
+    name: 'Alex — English Sensei',
+    sub:  'Anglais conversationnel & professionnel',
+    placeholder: 'Écris en anglais ou en français...',
+    lang: 'en-US',
+    chips: ['Correct my mistake ✏️','How do I say... ?','Practice conversation','Give me an exercise']
+  },
+  japanese: {
+    avatar: '🌸', cls: 'jp',
+    name: 'Sakura — 日本語先生',
+    sub:  'Hiragana, Katakana, Kanji & conversation',
+    placeholder: 'Écris en français ou en japonais...',
+    lang: 'ja-JP',
+    chips: ['Apprendre les hiragana','Vocabulaire de base','Me présenter','Prononciation 🎌']
+  },
+  webdev: {
+    avatar: '⚡', cls: 'cd',
+    name: 'Dev — Code Sensei',
+    sub:  'HTML, CSS, JavaScript — du zéro au pro',
+    placeholder: 'Pose une question ou colle ton code...',
+    lang: 'fr-FR',
+    chips: ['Débuter HTML','Qu\'est-ce que CSS ?','Mon premier projet','Corriger mon code 🐛']
+  }
+};
+
+const SYSTEM_PROMPTS = {
+  english: `Tu es Alex, un professeur d'anglais enthousiaste et bienveillant.
+RÈGLES :
+- Toujours répondre en FRANÇAIS d'abord pour expliquer, puis inclure la version ANGLAISE
+- Observer le niveau de l'élève et adapter la difficulté
+- Corriger les erreurs avec bienveillance en expliquant pourquoi
+- Utiliser des exemples concrets, courts, mémorables
+- Proposer un mini-exercice à chaque fin de réponse
+- Niveau actuel : débutant/intermédiaire`,
+
+  japanese: `Tu es Sakura, professeure de japonais douce et pédagogue.
+RÈGLES :
+- Répondre en FRANÇAIS avec le japonais entre parenthèses et sa romanisation
+- Progression : hiragana → katakana → vocabulaire → grammaire → conversation
+- Format pour chaque mot : japonais (romaji) = français
+- Donner toujours la prononciation
+- Utiliser des références culture pop (anime, nourriture) pour ancrer la mémoire
+- Encourager beaucoup, le japonais est difficile`,
+
+  webdev: `Tu es Dev, coach web pragmatique et moderne.
+RÈGLES :
+- Répondre en FRANÇAIS
+- Toujours fournir du code concret avec commentaires
+- Progression : HTML → CSS → JavaScript → React
+- Structure : concept → exemple → mini-exercice
+- Utiliser des analogies du quotidien
+- Formater le code en blocs \`\`\`html / \`\`\`css / \`\`\`javascript`
+};
+
+const OFFLINE_COURSES = [
+  { id:'en-greetings', label:'Greetings & Small Talk', sub:'Anglais · 12 leçons · ~2 Mo', icon:'🗣️', cls:'en' },
+  { id:'en-grammar',   label:'Grammar Essentials',    sub:'Anglais · 8 leçons · ~1 Mo',  icon:'✍️', cls:'en' },
+  { id:'jp-hiragana',  label:'Hiragana Complet',       sub:'Japonais · 15 leçons · ~3 Mo', icon:'あ', cls:'jp' },
+  { id:'jp-vocab100',  label:'100 mots essentiels',    sub:'Japonais · 10 leçons · ~1 Mo', icon:'📖', cls:'jp' },
+  { id:'cd-html',      label:'HTML de A à Z',          sub:'Web Dev · 20 leçons · ~4 Mo',  icon:'🏗️', cls:'cd' },
+  { id:'cd-css',       label:'CSS & Flexbox',          sub:'Web Dev · 15 leçons · ~2 Mo',  icon:'🎨', cls:'cd' },
+];
+
+const VOCAB = [
+  { k:'水', r:'mizu',      m:'💧 Eau' },
+  { k:'火', r:'hi',        m:'🔥 Feu' },
+  { k:'山', r:'yama',      m:'⛰️ Montagne' },
+  { k:'海', r:'umi',       m:'🌊 Mer' },
+  { k:'猫', r:'neko',      m:'🐱 Chat' },
+  { k:'犬', r:'inu',       m:'🐶 Chien' },
+  { k:'食べる', r:'taberu', m:'🍽️ Manger' },
+  { k:'行く', r:'iku',     m:'🚶 Aller' },
+  { k:'愛', r:'ai',        m:'❤️ Amour' },
+  { k:'友達', r:'tomodachi', m:'👫 Ami(e)' },
+  { k:'空', r:'sora',      m:'🌤️ Ciel' },
+  { k:'花', r:'hana',      m:'🌸 Fleur' },
+];
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let mode = 'english';
+let histories = { english:[], japanese:[], webdev:[] };
+let isRecording = false;
+let recognition = null;
+let downloadedCourses = new Set(JSON.parse(localStorage.getItem('dlCourses')||'[]'));
+let vocabIdx = 0;
+let isFlipped = false;
+let isOnline = navigator.onLine;
+
+// ═══════════════════════════════════════════════════════
+// MODE SWITCH
+// ═══════════════════════════════════════════════════════
+function switchMode(m) {
+  mode = m;
+  const t = TEACHERS[m];
+
+  // Tabs
+  document.querySelectorAll('.stab').forEach(el => {
+    el.classList.toggle('active', el.dataset.m === m);
+  });
+
+  // Teacher bar
+  const av = document.getElementById('teacherAv');
+  av.className = `teacher-avatar ${t.cls}`;
+  av.innerHTML = t.avatar + '<div class="online-dot"></div>';
+  document.getElementById('teacherName').textContent = t.name;
+  document.getElementById('teacherSub').textContent  = t.sub;
+
+  // Input
+  const inp = document.getElementById('msgInput');
+  inp.placeholder = t.placeholder;
+
+  // Send button color
+  const sb = document.getElementById('sendBtn');
+  sb.className = `send-btn ${t.cls}`;
+
+  // Suggestions
+  renderChips();
+
+  // Init messages if empty
+  if (histories[m].length === 0) {
+    renderMessages();
+    showWelcome(m);
+  } else {
+    renderMessages();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// WELCOME MESSAGES
+// ═══════════════════════════════════════════════════════
+const WELCOMES = {
+  english: `Hey! I'm **Alex**, your English coach 🎓\n\nI'll adapt to **your exact level** and help you progress fast. Let's start — tell me a little about yourself in English. Don't worry about mistakes, that's what I'm here for! 😊`,
+  japanese: `こんにちは！(Konnichiwa!) Je suis **Sakura** 🌸\n\nOn commence par les bases : les **hiragana**, l'alphabet phonétique du japonais.\n\nPremière rangée : **あ い う え お** (a · i · u · e · o)\n\nEssaie de prononcer ces 5 sons à voix haute !`,
+  webdev: `Salut ! Je suis **Dev**, ton coach web ⚡\n\nOn va construire tes compétences step by step. Est-ce que tu as déjà touché à du code ? HTML, CSS, JavaScript ?\n\nExemple de ce qu'on va apprendre :\n\`\`\`html\n<!DOCTYPE html>\n<html>\n  <body>\n    <h1>Hello World!</h1>\n  </body>\n</html>\`\`\`\n\nDis-moi ton niveau et on commence ! 🚀`
+};
+
+function showWelcome(m) {
+  const msg = WELCOMES[m];
+  histories[m].push({ role: 'assistant', content: msg });
+  renderMessages();
+}
+
+// ═══════════════════════════════════════════════════════
+// SEND
+// ═══════════════════════════════════════════════════════
+async function send() {
+  const inp = document.getElementById('msgInput');
+  const text = inp.value.trim();
+  if (!text) return;
+
+  inp.value = ''; inp.style.height = 'auto';
+
+  histories[mode].push({ role:'user', content: text });
+  renderMessages();
+  showTyping();
+
+  if (!isOnline) {
+    await fakeOfflineReply();
+    return;
+  }
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPTS[mode],
+        messages: histories[mode]
+      })
+    });
+    const data = await res.json();
+    hideTyping();
+    const reply = data.content?.[0]?.text || '⚠️ Réponse vide.';
+    histories[mode].push({ role:'assistant', content: reply });
+    renderMessages();
+  } catch(e) {
+    hideTyping();
+    const err = `⚠️ **Connexion impossible.**\n\nVérifie ta connexion internet.\n\nEn mode hors-ligne, télécharge d'abord un cours depuis le menu ⬇️`;
+    histories[mode].push({ role:'assistant', content: err });
+    renderMessages();
+  }
+}
+
+async function fakeOfflineReply() {
+  await new Promise(r => setTimeout(r, 800));
+  hideTyping();
+  const msgs = {
+    english: `📵 **Mode hors-ligne**\n\nJe ne peux pas répondre dynamiquement sans connexion. Consulte tes **cours téléchargés** dans le menu ⬇️`,
+    japanese: `📵 **オフラインモード**\n\nMode hors-ligne activé. Consulte tes cours téléchargés pour pratiquer les hiragana et le vocabulaire.`,
+    webdev: `📵 **Mode hors-ligne**\n\nConsulte tes cours HTML/CSS téléchargés. Tu peux aussi t'entraîner à coder sur [CodePen](https://codepen.io) si tu as une connexion.`
+  };
+  const reply = msgs[mode];
+  histories[mode].push({ role:'assistant', content: reply });
+  renderMessages();
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER MESSAGES
+// ═══════════════════════════════════════════════════════
+function renderMessages() {
+  const container = document.getElementById('messages');
+  const t = TEACHERS[mode];
+
+  container.innerHTML = '';
+  histories[mode].forEach((msg, i) => {
+    const isUser = msg.role === 'user';
+    const wrap = document.createElement('div');
+    wrap.className = `msg-wrap${isUser ? ' user' : ''}`;
+
+    const formatted = fmt(msg.content);
+    const cleanForTTS = msg.content
+      .replace(/```[\s\S]*?```/g,'...code...')
+      .replace(/[*_`#]/g,'')
+      .substring(0, 400)
+      .replace(/"/g,"'");
+
+    if (isUser) {
+      wrap.innerHTML = `
+        <div class="msg-body">
+          <div class="bubble user-msg">${formatted}</div>
+        </div>
+        <div class="msg-av">👤</div>`;
+    } else {
+      wrap.innerHTML = `
+        <div class="msg-av">${t.avatar}</div>
+        <div class="msg-body">
+          <div class="bubble ${t.cls}">${formatted}</div>
+          <div class="msg-actions">
+            <button class="act-btn" onclick="speak(this,\`${cleanForTTS}\`,'${t.lang}')">🔊</button>
+            <button class="act-btn" onclick="copyMsg(this,${i})">📋</button>
+          </div>
+        </div>`;
+    }
+    container.appendChild(wrap);
+  });
+
+  container.scrollTop = container.scrollHeight;
+}
+
+function fmt(text) {
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_,l,c) =>
+    `<pre><code>${c.trim()}</code></pre>`);
+  text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\n/g,'<br>');
+  return text;
+}
+
+// ═══════════════════════════════════════════════════════
+// TYPING INDICATOR
+// ═══════════════════════════════════════════════════════
+function showTyping() {
+  const c = document.getElementById('messages');
+  const t = TEACHERS[mode];
+  const d = document.createElement('div');
+  d.className = 'msg-wrap'; d.id = 'typingWrap';
+  d.innerHTML = `<div class="msg-av">${t.avatar}</div>
+    <div class="typing-bubble"><span></span><span></span><span></span></div>`;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+}
+function hideTyping() {
+  document.getElementById('typingWrap')?.remove();
+}
+
+// ═══════════════════════════════════════════════════════
+// INPUT HELPERS
+// ═══════════════════════════════════════════════════════
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) {
+    e.preventDefault(); send();
+  }
+}
+function autoSize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ═══════════════════════════════════════════════════════
+// CHIPS (suggestions)
+// ═══════════════════════════════════════════════════════
+function renderChips() {
+  const row = document.getElementById('suggestionsRow');
+  const chips = TEACHERS[mode].chips;
+  row.innerHTML = chips.map(c =>
+    `<button class="chip" onclick="useChip(this)">${c}</button>`
+  ).join('');
+}
+function useChip(el) {
+  const inp = document.getElementById('msgInput');
+  inp.value = el.textContent.replace(/[🔤💬🎌🐛✏️]/g,'').trim();
+  autoSize(inp);
+  inp.focus();
+}
+
+// ═══════════════════════════════════════════════════════
+// VOICE INPUT
+// ═══════════════════════════════════════════════════════
+function toggleVoice() {
+  const btn = document.getElementById('micBtn');
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    showToast('Reconnaissance vocale non disponible sur ce navigateur'); return;
+  }
+  if (isRecording) { recognition?.stop(); return; }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = TEACHERS[mode].lang;
+  recognition.continuous = false; recognition.interimResults = false;
+
+  recognition.onstart  = () => { isRecording = true;  btn.classList.add('rec'); };
+  recognition.onend    = () => { isRecording = false; btn.classList.remove('rec');
+    const v = document.getElementById('msgInput').value.trim();
+    if (v) setTimeout(send, 250);
+  };
+  recognition.onresult = e => {
+    document.getElementById('msgInput').value = e.results[0][0].transcript;
+  };
+  recognition.onerror  = e => {
+    isRecording = false; btn.classList.remove('rec');
+    if (e.error !== 'no-speech') showToast('Erreur micro : ' + e.error);
+  };
+  recognition.start();
+}
+
+// ═══════════════════════════════════════════════════════
+// TTS
+// ═══════════════════════════════════════════════════════
+let speaking = false;
+function speak(btn, text, lang) {
+  if (!window.speechSynthesis) return;
+  if (speaking) { window.speechSynthesis.cancel(); speaking = false; btn.textContent = '🔊'; return; }
+
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = lang; utt.rate = lang === 'ja-JP' ? 0.85 : 0.9;
+  const voices = window.speechSynthesis.getVoices();
+  const match = voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+  if (match) utt.voice = match;
+
+  utt.onstart = () => { speaking = true; btn.textContent = '⏹'; };
+  utt.onend = utt.onerror = () => { speaking = false; btn.textContent = '🔊'; };
+  window.speechSynthesis.speak(utt);
+}
+
+// ═══════════════════════════════════════════════════════
+// COPY
+// ═══════════════════════════════════════════════════════
+function copyMsg(btn, idx) {
+  const text = histories[mode][idx]?.content || '';
+  navigator.clipboard?.writeText(text).then(() => {
+    btn.textContent = '✅'; setTimeout(() => btn.textContent = '📋', 1500);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// FLASH CARDS
+// ═══════════════════════════════════════════════════════
+function updateCard() {
+  isFlipped = false;
+  document.getElementById('flashCard').classList.remove('flipped');
+  const v = VOCAB[vocabIdx];
+  document.getElementById('fcKanji').textContent = v.k;
+  document.getElementById('fcRomaji').textContent = v.r;
+  document.getElementById('fcMeaning').textContent = v.m;
+}
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById('flashCard').classList.toggle('flipped', isFlipped);
+}
+function nextCard() { vocabIdx = (vocabIdx + 1) % VOCAB.length; updateCard(); }
+function prevCard() { vocabIdx = (vocabIdx - 1 + VOCAB.length) % VOCAB.length; updateCard(); }
+
+// ═══════════════════════════════════════════════════════
+// STREAK
+// ═══════════════════════════════════════════════════════
+function buildStreak(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const days = ['L','M','M','J','V','S','D'];
+  const done = [0,1,2]; const today = 3;
+  el.innerHTML = days.map((d,i) =>
+    `<div class="s-day${done.includes(i)?' done':''}${i===today?' today':''}">
+      <span style="font-size:8px">${d}</span><span>${done.includes(i)?'✓':i===today?'○':''}</span>
+    </div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// OFFLINE COURSE DOWNLOAD
+// ═══════════════════════════════════════════════════════
+function buildCourseList(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = OFFLINE_COURSES.map(c => {
+    const isDone = downloadedCourses.has(c.id);
+    return `<div class="course-card">
+      <div class="course-icon ${c.cls}">${c.icon}</div>
+      <div class="course-meta">
+        <div class="course-name">${c.label}</div>
+        <div class="course-sub">${c.sub}</div>
+      </div>
+      <button class="dl-btn ${isDone?'done':''}" id="dl-${c.id}"
+        onclick="downloadCourse('${c.id}',this)" title="${isDone?'Déjà téléchargé':'Télécharger'}">
+        ${isDone ? '✓' : '⬇'}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+async function downloadCourse(id, btn) {
+  if (downloadedCourses.has(id)) {
+    showToast('Ce cours est déjà disponible hors-ligne ✓'); return;
+  }
+
+  btn.classList.add('downloading');
+  btn.textContent = '↻';
+
+  // Simulate course content generation (would be real AI-generated content)
+  const course = OFFLINE_COURSES.find(c => c.id === id);
+  const content = await generateCourseContent(course);
+
+  // Save to localStorage
+  const stored = JSON.parse(localStorage.getItem('courses') || '{}');
+  stored[id] = content;
+  localStorage.setItem('courses', JSON.stringify(stored));
+
+  // Track downloaded
+  downloadedCourses.add(id);
+  localStorage.setItem('dlCourses', JSON.stringify([...downloadedCourses]));
+
+  // Cache via Service Worker if available
+  if (navigator.serviceWorker?.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'CACHE_COURSE', courseId: id, content
+    });
+  }
+
+  btn.classList.remove('downloading');
+  btn.classList.add('done');
+  btn.textContent = '✓';
+
+  showToast(`"${course.label}" disponible hors-ligne ! ✅`);
+  // Rebuild lists
+  buildCourseList('courseListDesktop');
+  buildCourseList('courseListSheet');
+}
+
+async function generateCourseContent(course) {
+  // For real use, this would call Claude API to generate structured lessons
+  // Here we create local lesson stubs
+  const lessons = [];
+  const lessonCount = parseInt(course.sub.split('·')[1]) || 10;
+  for (let i = 1; i <= Math.min(lessonCount, 5); i++) {
+    lessons.push({
+      num: i,
+      title: `Leçon ${i} — ${course.label}`,
+      content: `Contenu de la leçon ${i}. Disponible hors-ligne.`,
+      downloadedAt: new Date().toISOString()
+    });
+  }
+  return { id: course.id, label: course.label, lessons, savedAt: new Date().toISOString() };
+}
+
+// ═══════════════════════════════════════════════════════
+// SHEET (mobile drawer)
+// ═══════════════════════════════════════════════════════
+function openSheet(type) {
+  const overlay = document.getElementById('sheetOverlay');
+  const sheet   = document.getElementById('sheet');
+  const title   = document.getElementById('sheetTitle');
+  const body    = document.getElementById('sheetBody');
+
+  overlay.classList.add('open');
+  sheet.classList.add('open');
+
+  if (type === 'stats') {
+    title.textContent = '📊 Ma Progression';
+    body.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:14px;padding-top:8px">
+        ${[['🇬🇧','Anglais','var(--en)',20],['🇯🇵','Japonais','var(--jp)',5],['💻','Web Dev','var(--cd)',10]]
+          .map(([icon,name,color,pct]) => `
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="font-size:20px">${icon}</div>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:600;margin-bottom:6px">${name}</div>
+                <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
+                  <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width 1s ease"></div>
+                </div>
+              </div>
+              <div style="font-size:13px;color:var(--text2);font-weight:600">${pct}%</div>
+            </div>`).join('')}
+        <div style="margin-top:8px">
+          <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:700;margin-bottom:10px">🔥 Streak</div>
+          <div id="streakSheetDays" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+        </div>
+      </div>`;
+    buildStreak('streakSheetDays');
+
+  } else if (type === 'cards') {
+    title.textContent = '🃏 Flash Cards';
+    body.innerHTML = `
+      <div style="padding-top:8px">
+        <div class="flash-card" onclick="flipCard()" style="margin-bottom:10px">
+          <div class="flash-inner">
+            <div class="flash-front">
+              <div class="flash-kanji" id="fcKanji2">${VOCAB[vocabIdx].k}</div>
+              <div class="flash-romaji" id="fcRomaji2">${VOCAB[vocabIdx].r}</div>
+              <div class="flash-hint">Tap pour révéler</div>
+            </div>
+            <div class="flash-back">
+              <div class="flash-meaning" id="fcMeaning2">${VOCAB[vocabIdx].m}</div>
+            </div>
+          </div>
+        </div>
+        <div class="flash-nav">
+          <button onclick="prevCard();syncSheetCard()">← Préc.</button>
+          <button onclick="nextCard();syncSheetCard()">Suiv. →</button>
+        </div>
+        <div style="text-align:center;color:var(--text3);font-size:12px;margin-top:10px">
+          Carte ${vocabIdx+1} / ${VOCAB.length}
+        </div>
+      </div>`;
+
+  } else if (type === 'offline') {
+    title.textContent = '📥 Cours Hors-Ligne';
+    body.innerHTML = `
+      <div style="color:var(--text2);font-size:12px;padding:10px 0 14px;line-height:1.6">
+        📱 Télécharge des cours pour les utiliser <strong>sans connexion</strong> sur iPhone, iPad ou tablette. Les cours sont sauvegardés sur ton appareil.
+      </div>
+      <div class="course-list" id="courseListSheet"></div>`;
+    buildCourseList('courseListSheet');
+  }
+}
+
+function syncSheetCard() {
+  const k = document.getElementById('fcKanji2');
+  const r = document.getElementById('fcRomaji2');
+  const m = document.getElementById('fcMeaning2');
+  if (k) k.textContent = VOCAB[vocabIdx].k;
+  if (r) r.textContent = VOCAB[vocabIdx].r;
+  if (m) m.textContent = VOCAB[vocabIdx].m;
+}
+
+function closeSheet() {
+  document.getElementById('sheetOverlay').classList.remove('open');
+  document.getElementById('sheet').classList.remove('open');
+}
+
+function mobilePanelSwitch(panel) {
+  document.querySelectorAll('.bn-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`bnt${panel.charAt(0).toUpperCase()+panel.slice(1)}`).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════════════════
+// ONLINE/OFFLINE DETECTION
+// ═══════════════════════════════════════════════════════
+function updateOnlineStatus() {
+  isOnline = navigator.onLine;
+  const badge = document.getElementById('offlineBadge');
+  badge.classList.toggle('show', !isOnline);
+  if (!isOnline) showToast('📵 Mode hors-ligne activé');
+}
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// ═══════════════════════════════════════════════════════
+// SERVICE WORKER
+// ═══════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(e => console.log('SW failed:', e));
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+buildStreak('streakDays');
+buildCourseList('courseListDesktop');
+renderChips();
+switchMode('english');
+updateOnlineStatus();
+
+// Preload voices
+window.speechSynthesis?.getVoices();
+window.speechSynthesis?.addEventListener?.('voiceschanged', () => window.speechSynthesis.getVoices());
+
+// Focus input on desktop
+if (window.innerWidth > 768) {
+  setTimeout(() => document.getElementById('msgInput').focus(), 200);
+}
+</script>
+</body>
+</html>
