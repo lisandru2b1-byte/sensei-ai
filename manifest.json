@@ -1,0 +1,22 @@
+{
+  "name": "Sensei.AI",
+  "short_name": "Sensei",
+  "description": "Sensei AI - Assistant intelligent",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0c14",
+  "theme_color": "#0c0c14",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://api.iconify.design/fluent-emoji:japanese-symbol-for-beginner.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "https://api.iconify.design/fluent-emoji:japanese-symbol-for-beginner.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
